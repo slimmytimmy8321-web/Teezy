@@ -11,7 +11,7 @@ provider — this app has no backend and no server-side storage at all.
 
 ## Features
 
-- 75 filter presets across 7 categories (hairstyles, hair colors, headshots, age,
+- 74 filter presets across 7 categories (hairstyles, hair colors, headshots, age,
   artistic styles, facial hair, outfits), searchable
 - Drag-and-drop photo upload, processed locally in the browser
 - Built-in offline canvas filters (free, instant, no account)

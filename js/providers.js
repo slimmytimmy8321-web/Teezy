@@ -98,7 +98,12 @@ const PROVIDERS = {
     async generate({ image, filter, settings }) {
       const base = (settings.openaiBase || "https://api.openai.com/v1").replace(/\/$/, "");
       const model = settings.openaiModel || "gpt-image-1";
-      const blob = await new Promise(res => image.toBlob(res, "image/png"));
+      const canvas = document.createElement("canvas");
+      const scale = Math.min(1, 1024 / Math.max(image.naturalWidth, image.naturalHeight));
+      canvas.width = Math.round(image.naturalWidth * scale);
+      canvas.height = Math.round(image.naturalHeight * scale);
+      canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
       const form = new FormData();
       form.append("model", model);
       form.append("prompt", filter.prompt);
