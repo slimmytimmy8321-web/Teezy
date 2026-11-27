@@ -123,6 +123,26 @@ main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 60px; }
   flex-wrap: wrap;
   margin: 10px 0 14px;
 }
+.filters-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+#batch-toggle.active {
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  color: #0b0b10;
+}
+.batch-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 16px;
+  margin-bottom: 14px;
+}
 #filter-search {
   background: var(--panel);
   border: 1px solid var(--border);
@@ -160,6 +180,78 @@ main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 60px; }
   margin-top: 3px;
 }
 .filter-card:disabled { opacity: 0.5; cursor: wait; }
+.filter-card.selected {
+  border-color: var(--accent-2);
+  box-shadow: 0 0 0 2px var(--accent-2) inset;
+}
+.filter-card .tune {
+  font-size: 0.68rem;
+  color: var(--accent-2);
+  margin-top: 5px;
+  opacity: 0.85;
+}
+
+.compare {
+  position: relative;
+  width: 100%;
+  height: 420px;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+}
+.compare .compare-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.compare-before {
+  position: absolute;
+  inset: 0;
+  clip-path: inset(0 calc(100% - var(--pos, 50%)) 0 0);
+}
+.compare-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--pos, 50%);
+  width: 3px;
+  margin-left: -1.5px;
+  background: #fff;
+  cursor: ew-resize;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+}
+.compare-handle::after {
+  content: "⇔";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  color: #0b0b10;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 700;
+}
+.compare-label {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  z-index: 2;
+}
+.compare-label-right { left: auto; right: 10px; }
 
 .history-title { margin-top: 30px; }
 .history {

@@ -61,7 +61,15 @@
 
       <div class="filters-head">
         <h2>Pick a filter <span class="muted small">(all free, unlimited)</span></h2>
-        <input id="filter-search" type="search" placeholder="Search filters…" />
+        <div class="filters-tools">
+          <input id="filter-search" type="search" placeholder="Search filters…" />
+          <button id="batch-toggle" class="btn btn-ghost btn-small">🔀 Batch mode</button>
+        </div>
+      </div>
+      <div id="batch-bar" class="batch-bar hidden">
+        <span id="batch-count" class="muted small">0 selected</span>
+        <button id="batch-run" class="btn btn-primary btn-small" disabled>▶ Generate all</button>
+        <button id="batch-clear" class="btn btn-ghost btn-small">Clear</button>
       </div>
       <div id="filter-grid" class="filter-grid"></div>
 

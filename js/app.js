@@ -6,7 +6,9 @@
     image: null,
     settings: JSON.parse(localStorage.getItem("ss_settings") || "{}"),
     lastResult: null,
-    busy: false
+    busy: false,
+    batchMode: false,
+    selection: new Set()
   };
 
   const ageGate = $("age-gate");
@@ -21,6 +23,11 @@
   const downloadBtn = $("download-btn");
   const historyEl = $("history");
   const toastEl = $("toast");
+  const batchToggle = $("batch-toggle");
+  const batchBar = $("batch-bar");
+  const batchCount = $("batch-count");
+  const batchRun = $("batch-run");
+  const batchClear = $("batch-clear");
 
   if (localStorage.getItem("ss_age_ok") === "1") enterApp();
 
@@ -77,16 +84,101 @@
     for (const f of list) {
       const btn = document.createElement("button");
       btn.className = "filter-card";
+      if (state.selection.has(f.id)) btn.classList.add("selected");
       btn.innerHTML =
         '<div class="emoji">' + f.emoji + '</div>' +
         '<div class="name"></div>' +
-        '<div class="cat"></div>';
+        '<div class="cat"></div>' +
+        '<div class="tune">⚡ auto-tuned</div>';
       btn.querySelector(".name").textContent = f.name;
       btn.querySelector(".cat").textContent = f.cat;
-      btn.addEventListener("click", () => runFilter(f, btn));
+      btn.addEventListener("click", () => {
+        if (state.batchMode) toggleSelect(f, btn);
+        else runFilter(f, btn);
+      });
       grid.appendChild(btn);
     }
     if (!list.length) grid.innerHTML = '<p class="muted">No filters match your search.</p>';
+  }
+
+  function toggleSelect(filter, btn) {
+    if (state.selection.has(filter.id)) {
+      state.selection.delete(filter.id);
+      btn.classList.remove("selected");
+    } else {
+      state.selection.add(filter.id);
+      btn.classList.add("selected");
+    }
+    updateBatchBar();
+  }
+
+  function updateBatchBar() {
+    const n = state.selection.size;
+    batchCount.textContent = n + " selected";
+    batchBar.classList.toggle("hidden", !state.batchMode);
+    batchRun.disabled = n === 0 || state.busy;
+  }
+
+  batchToggle.addEventListener("click", () => {
+    state.batchMode = !state.batchMode;
+    batchToggle.classList.toggle("active", state.batchMode);
+    batchToggle.textContent = state.batchMode ? "✅ Batch mode on" : "🔀 Batch mode";
+    if (!state.batchMode) {
+      state.selection.clear();
+      document.querySelectorAll(".filter-card.selected").forEach(c => c.classList.remove("selected"));
+    }
+    updateBatchBar();
+  });
+
+  batchClear.addEventListener("click", () => {
+    state.selection.clear();
+    document.querySelectorAll(".filter-card.selected").forEach(c => c.classList.remove("selected"));
+    updateBatchBar();
+  });
+
+  batchRun.addEventListener("click", async () => {
+    if (state.busy || !state.image || !state.selection.size) return;
+    const filters = FILTER_CATALOG.filter(f => state.selection.has(f.id));
+    state.busy = true;
+    batchRun.disabled = true;
+    let done = 0;
+    for (const f of filters) {
+      toast("Batch: " + f.name + " (" + (done + 1) + "/" + filters.length + ")");
+      try {
+        const result = await generate(f);
+        addHistory(result, f);
+      } catch (err) {
+        toast(f.name + " failed: " + (err.message || "error"), true);
+      }
+      done++;
+    }
+    state.busy = false;
+    batchRun.disabled = false;
+    state.selection.clear();
+    document.querySelectorAll(".filter-card.selected").forEach(c => c.classList.remove("selected"));
+    updateBatchBar();
+    toast("Batch complete ✨ " + done + " filters run — unlimited, as always");
+  });
+
+  async function generate(filter) {
+    const provider = PROVIDERS[state.settings.provider || "demo"];
+    if (provider.needsImage && !hasKey(provider)) {
+      throw new Error("Add your API key in ⚙️ Settings first — or use the free built-in filters");
+    }
+    return await provider.generate({
+      image: state.image,
+      filter,
+      strength: sliderStrength(filter),
+      settings: state.settings
+    });
+  }
+
+  function sliderStrength(filter) {
+    const base = parseFloat($("strength").value);
+    if (filter && typeof filter.strength === "number") {
+      return ((base - 0.55) + filter.strength).toFixed(2);
+    }
+    return base;
   }
 
   async function runFilter(filter, btn) {
@@ -96,23 +188,10 @@
     resultBox.innerHTML = '<div class="spinner"></div>';
     downloadBtn.classList.add("hidden");
     try {
-      const provider = PROVIDERS[state.settings.provider || "demo"];
-      if (provider.needsImage && !hasKey(provider)) {
-        throw new Error("Add your API key in ⚙️ Settings first — or use the free built-in filters");
-      }
-      const strength = $("strength").value;
-      const result = await provider.generate({
-        image: state.image,
-        filter,
-        strength,
-        settings: state.settings
-      });
-      state.lastResult = result;
-      resultBox.innerHTML = "";
-      resultBox.appendChild(result);
-      downloadBtn.classList.remove("hidden");
+      const result = await generate(filter);
+      showComparison(result);
       addHistory(result, filter);
-      toast("Done ✨ Unlimited means unlimited — run it again whenever you like");
+      toast("Done ✨ Drag the slider to compare — unlimited, run it again anytime");
     } catch (err) {
       resultBox.innerHTML = '<p class="muted">Pick a filter to see the result here</p>';
       toast(err.message || "Something went wrong", true);
@@ -120,6 +199,57 @@
       state.busy = false;
       btn.disabled = false;
     }
+  }
+
+  function showComparison(resultImg) {
+    state.lastResult = resultImg;
+    resultBox.innerHTML = "";
+    const wrap = document.createElement("div");
+    wrap.className = "compare";
+    wrap.style.setProperty("--pos", "50%");
+
+    const after = resultImg.cloneNode();
+    after.className = "compare-img";
+
+    const beforeWrap = document.createElement("div");
+    beforeWrap.className = "compare-before";
+    const before = state.image.cloneNode();
+    before.className = "compare-img";
+    beforeWrap.appendChild(before);
+
+    const labelAfter = document.createElement("span");
+    labelAfter.className = "compare-label compare-label-right";
+    labelAfter.textContent = "After";
+    const labelBefore = document.createElement("span");
+    labelBefore.className = "compare-label";
+    labelBefore.textContent = "Before";
+
+    const handle = document.createElement("div");
+    handle.className = "compare-handle";
+
+    wrap.appendChild(after);
+    wrap.appendChild(beforeWrap);
+    wrap.appendChild(labelAfter);
+    wrap.appendChild(labelBefore);
+    wrap.appendChild(handle);
+    resultBox.appendChild(wrap);
+
+    let dragging = false;
+    const setPos = clientX => {
+      const rect = wrap.getBoundingClientRect();
+      const pct = Math.min(100, Math.max(0, ((clientX - rect.left) / rect.width) * 100));
+      wrap.style.setProperty("--pos", pct + "%");
+    };
+    wrap.addEventListener("pointerdown", e => {
+      dragging = true;
+      wrap.setPointerCapture(e.pointerId);
+      setPos(e.clientX);
+    });
+    wrap.addEventListener("pointermove", e => { if (dragging) setPos(e.clientX); });
+    wrap.addEventListener("pointerup", () => { dragging = false; });
+    wrap.addEventListener("pointercancel", () => { dragging = false; });
+
+    downloadBtn.classList.remove("hidden");
   }
 
   function hasKey(provider) {
@@ -132,10 +262,7 @@
     thumb.alt = filter.name;
     thumb.title = filter.name;
     thumb.addEventListener("click", () => {
-      resultBox.innerHTML = "";
-      resultBox.appendChild(img);
-      downloadBtn.classList.remove("hidden");
-      state.lastResult = img;
+      showComparison(img);
     });
     historyEl.prepend(thumb);
     while (historyEl.children.length > 24) historyEl.lastChild.remove();
@@ -207,4 +334,5 @@
   }
 
   renderGrid();
+  updateBatchBar();
 })();
