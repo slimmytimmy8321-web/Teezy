@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Selfie Studio — Free Unlimited AI Photo Filters</title>
+  <meta name="description" content="Try new hairstyles, headshots and styles on your own photo. Free, unlimited, no paywall. 18+ only." />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📸</text></svg>" />
+</head>
+<body>
+  <div id="age-gate" class="overlay hidden">
+    <div class="overlay-card">
+      <h1>📸 Selfie Studio</h1>
+      <p class="muted">Free &amp; unlimited AI photo filters. No paywall, no credits, no subscription. Ever.</p>
+      <p>This app is for adults only. By entering you confirm you are <strong>18 years or older</strong>, you will only upload photos of <strong>yourself or of people who have given you permission</strong>, and you will not use the app to create sexual content of real people.</p>
+      <div class="btn-row">
+        <button id="age-yes" class="btn btn-primary">I'm 18 or older — Enter</button>
+        <button id="age-no" class="btn btn-ghost">I'm under 18</button>
+      </div>
+    </div>
+  </div>
+
+  <header class="topbar">
+    <div class="brand">📸 Selfie Studio</div>
+    <div class="topbar-actions">
+      <span id="unlimited-badge" class="badge">∞ Unlimited — Free</span>
+      <button id="settings-btn" class="btn btn-ghost">⚙️ Settings</button>
+    </div>
+  </header>
+
+  <main id="app" class="hidden">
+    <section id="step-upload" class="panel">
+      <h2>Start with a photo</h2>
+      <p class="muted">Upload a selfie. It stays in your browser — nothing is sent anywhere unless you generate with an AI provider you configured yourself.</p>
+      <div id="dropzone" class="dropzone" tabindex="0">
+        <input type="file" id="file-input" accept="image/*" hidden />
+        <div class="dropzone-inner">
+          <div class="dropzone-icon">⬆️</div>
+          <p><strong>Click or drag a photo here</strong></p>
+          <p class="muted">JPG, PNG or WebP · processed locally in your browser</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="step-filters" class="panel hidden">
+      <div class="photo-row">
+        <div class="photo-box">
+          <h3>Your photo</h3>
+          <img id="source-img" alt="Uploaded selfie" />
+          <button id="change-photo" class="btn btn-ghost btn-small">Change photo</button>
+        </div>
+        <div class="photo-box">
+          <h3>Result</h3>
+          <div id="result-box" class="result-box">
+            <p class="muted">Pick a filter to see the result here</p>
+          </div>
+          <button id="download-btn" class="btn btn-primary btn-small hidden">⬇️ Download result</button>
+        </div>
+      </div>
+
+      <div class="filters-head">
+        <h2>Pick a filter <span class="muted small">(all free, unlimited)</span></h2>
+        <input id="filter-search" type="search" placeholder="Search filters…" />
+      </div>
+      <div id="filter-grid" class="filter-grid"></div>
+
+      <h3 class="history-title">Recent results</h3>
+      <div id="history" class="history"></div>
+    </section>
+  </main>
+
+  <div id="settings-modal" class="overlay hidden">
+    <div class="overlay-card wide">
+      <h2>⚙️ Generation settings</h2>
+      <p class="muted">The app works offline with built-in canvas filters. For full AI transformations, connect your own image-generation account below — your key is stored only in this browser and calls go directly from your browser to the provider. There are no built-in limits or costs beyond what your provider charges you.</p>
+
+      <label class="field">
+        <span>Provider</span>
+        <select id="provider-select">
+          <option value="demo">Built-in filters (offline, free)</option>
+          <option value="replicate">Replicate</option>
+          <option value="fal">fal.ai</option>
+          <option value="openai">OpenAI-compatible</option>
+        </select>
+      </label>
+
+      <div id="provider-fields"></div>
+
+      <label class="field">
+        <span>Strength (how much the AI changes your photo)</span>
+        <input id="strength" type="range" min="0.2" max="0.9" step="0.05" value="0.55" />
+        <span id="strength-val" class="muted small">0.55</span>
+      </label>
+
+      <div class="btn-row">
+        <button id="settings-save" class="btn btn-primary">Save</button>
+        <button id="settings-cancel" class="btn btn-ghost">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <footer class="footer">
+    <p>18+ only · Upload only photos of yourself or of consenting people · Non-sexual transformations only · Your photos never touch our servers — there are none.</p>
+  </footer>
+
+  <script src="js/filters.js"></script>
+  <script src="js/providers.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
