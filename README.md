@@ -11,12 +11,15 @@ provider — this app has no backend and no server-side storage at all.
 
 ## Features
 
-- 38 filter presets across 6 categories, searchable
+- 75 filter presets across 7 categories (hairstyles, hair colors, headshots, age,
+  artistic styles, facial hair, outfits), searchable
 - Drag-and-drop photo upload, processed locally in the browser
 - Built-in offline canvas filters (free, instant, no account)
 - Pluggable AI providers: Replicate, fal.ai, OpenAI-compatible endpoints
+- Per-filter auto-tuned transformation strength (delicate tweaks vs full redraws)
+- Before/after comparison slider on every result
+- Batch mode: select any number of filters and generate them all in one run
 - Unlimited generations — the app imposes no limits of any kind
-- Adjustable transformation strength
 - Result history and one-click download
 
 ## Run it
